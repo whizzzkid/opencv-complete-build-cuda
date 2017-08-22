@@ -1,4 +1,9 @@
 # Latest OpenCV Installer From Source.
+
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](https://github.com/whizzzkid/opencv-complete-build-cuda/pulls)
+[![Code Climate](https://lima.codeclimate.com/github/whizzzkid/opencv-complete-build-cuda/badges/gpa.svg)](https://lima.codeclimate.com/github/whizzzkid/opencv-complete-build-cuda)
+[![Issue Count](https://lima.codeclimate.com/github/whizzzkid/opencv-complete-build-cuda/badges/issue_count.svg)](https://lima.codeclimate.com/github/whizzzkid/opencv-complete-build-cuda)
+
 Full build script for Open CV with/without cuda and bumblebee support.
 
 ## Need
