@@ -1,5 +1,5 @@
 #!/bin/bash
-# Run: $ curl -fsSL http://bit.ly/OpenCV-3_2 | [optirun] bash
+# Run: $ curl -fsSL http://bit.ly/OpenCV-Latest | [optirun] bash -s /path/to/download/folder
 RESET='\033[0m'
 COLOR='\033[1;32m'
 function msg {
