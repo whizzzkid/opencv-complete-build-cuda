@@ -107,13 +107,13 @@ msg "Building Ceres Solver."
 mkdir ceres-solver/build
 cd ceres-solver/build
 cmake \
-  -DCMAKE_C_FLAGS="-fPIC"                                                      \
-  -DCMAKE_CXX_FLAGS="-fPIC"                                                    \
-  -DBUILD_EXAMPLES=OFF                                                         \
-  -DBUILD_TESTING=OFF                                                          \
+  -D CMAKE_C_FLAGS="-fPIC"                                                     \
+  -D CMAKE_CXX_FLAGS="-fPIC"                                                   \
+  -D BUILD_EXAMPLES=OFF                                                        \
+  -D BUILD_SHARED_LIBS=ON                                                      \
 ..
 make -j $(($(nproc)+1))
-
+make test
 msg "Installing Ceres Solver."
 sudo make install
 cd $DOWNLOAD_PATH
@@ -156,7 +156,7 @@ cmake \
 
 # Making
 msg "Building OpenCV with $(($(nproc)+1)) threads"
-make -j $(($(nproc)+1)) -
+make -j $(($(nproc)+1))
 
 # Installing
 msg "Installing OpenCV"
