@@ -19,6 +19,8 @@ msg "OpenCV will be installed in $INSTALL_PATH"
 DOWNLOAD_PATH=$1
 msg "OpenCV will be downloaded in $DOWNLOAD_PATH"
 
+CUDA_PATH="/usr/local/cuda"
+
 msg "Updating system before installing new packages."
 sudo apt -y update
 sudo apt -y upgrade
@@ -56,6 +58,9 @@ sudo apt install -y ant default-jdk
 msg "Installing Docs."
 sudo apt install -y doxygen
 
+msg "All deps installed. Continuing with installation"
+
+# Downloading
 cd $DOWNLOAD_PATH
 
 if [[ -d "ceres-solver" && -x "ceres-solver" ]]; then
@@ -68,19 +73,6 @@ else
   git clone https://ceres-solver.googlesource.com/ceres-solver
 fi
 
-msg "Building Ceres Solver."
-mkdir ceres-solver/build
-cd ceres-solver/build
-cmake ..
-make -j $(($(nproc)+1))
-
-msg "Installing Ceres Solver."
-sudo make install
-cd ../..
-
-msg "All deps installed. Continuing with installation"
-
-# Downloading
 if [[ -d "opencv" && -x "opencv" ]]; then
   msg "Updating OpenCV Repo."
   cd opencv
@@ -111,43 +103,65 @@ else
   git clone https://github.com/opencv/opencv_extra.git
 fi
 
+msg "Building Ceres Solver."
+mkdir ceres-solver/build
+cd ceres-solver/build
+cmake \
+  -DCMAKE_C_FLAGS="-fPIC"                                                      \
+  -DCMAKE_CXX_FLAGS="-fPIC"                                                    \
+  -DBUILD_EXAMPLES=OFF                                                         \
+  -DBUILD_TESTING=OFF                                                          \
+..
+make -j $(($(nproc)+1))
+
+msg "Installing Ceres Solver."
+sudo make install
+cd $DOWNLOAD_PATH
+
 sudo rm -rf opencv/build
 mkdir -p opencv/build;
 cd opencv/build
 
 # Configuring make
 msg "Configuring OpenCV Make"
-cmake -D CMAKE_BUILD_TYPE=RELEASE                                              \
+cmake \
+      -D BUILD_EXAMPLES=ON                                                     \
+      -D BUILD_OPENCV_JAVA=OFF                                                 \
+      -D BUILD_OPENCV_NONFREE=ON                                               \
+      -D BUILD_OPENCV_PYTHON=ON                                                \
+      -D CMAKE_BUILD_TYPE=RELEASE                                              \
       -D CMAKE_INSTALL_PREFIX=$INSTALL_PATH                                    \
       -D CUDA_FAST_MATH=1                                                      \
-      -D BUILD_PYTHON_SUPPORT=ON                                               \
-      -D BUILD_EXAMPLES=ON                                                     \
-      -D BUILD_NEW_PYTHON_SUPPORT=ON                                           \
-      -D BUILD_OPENCV_NONFREE=ON                                               \
+      -D CUDA_TOOLKIT_ROOT_DIR=$CUDA_PATH                                      \
       -D ENABLE_FAST_MATH=1                                                    \
-      -D FORCE_VTK=ON                                                          \
-      -D INSTALL_C_EXAMPLES=ON                                                 \
-      -D INSTALL_PYTHON_EXAMPLES=ON                                            \
-      -D WITH_GDAL=ON                                                          \
+      -D ENABLE_PRECOMPILED_HEADERS=OFF                                        \
+      -D OPENCV_EXTRA_MODULES_PATH=$DOWNLOAD_PATH/opencv_contrib/modules       \
+      -D OPENCV_TEST_DATA_PATH=$DOWNLOAD_PATH/opencv_extra/testdata            \
+      -D WITH_1394=OFF                                                         \
       -D WITH_CUBLAS=ON                                                        \
+      -D WITH_CUDA=ON                                                          \
+      -D WITH_FFMPEG=ON                                                        \
+      -D WITH_GDAL=ON                                                          \
       -D WITH_LIBV4L=ON                                                        \
       -D WITH_NVCUVID=ON                                                       \
+      -D WITH_OPENCL=ON                                                        \
       -D WITH_OPENGL=ON                                                        \
-      -D WITH_OPENGL=ON                                                        \
+      -D WITH_OPENMP=ON                                                        \
       -D WITH_QT=ON                                                            \
       -D WITH_TBB=ON                                                           \
       -D WITH_V4L=ON                                                           \
+      -D WITH_VTK=OFF                                                          \
       -D WITH_XINE=ON                                                          \
-      -D OPENCV_EXTRA_MODULES_PATH=$DOWNLOAD_PATH/opencv_contrib/modules       \
 ..
 
 # Making
 msg "Building OpenCV with $(($(nproc)+1)) threads"
-make -j $(($(nproc)+1))
+make -j $(($(nproc)+1)) -
 
 # Installing
 msg "Installing OpenCV"
 sudo make install
+sudo ldconfig
 
 # Finished
 msg "Installation finished for OpenCV"
