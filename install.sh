@@ -32,7 +32,7 @@ msg "Installing build tools."
 sudo apt install -y build-essential cmake git
 
 msg "Installing GUI components."
-sudo apt install -y qt5-default libvtk6-dev
+sudo apt install -y qt5-default libvtk6-dev python-vtk6
 
 msg "Installing media I/O componenets."
 sudo apt install -y zlib1g-dev libjpeg-dev libwebp-dev libpng-dev libtiff5-dev libjasper-dev libopenexr-dev libgdal-dev
@@ -113,9 +113,9 @@ cmake \
   -D BUILD_SHARED_LIBS=ON                                                      \
 ..
 make -j $(($(nproc)+1))
-make test
+make -j $(($(nproc)+1)) test
 msg "Installing Ceres Solver."
-sudo make install
+sudo make -j $(($(nproc)+1)) install
 cd $DOWNLOAD_PATH
 
 sudo rm -rf opencv/build
@@ -129,14 +129,18 @@ cmake \
       -D BUILD_OPENCV_JAVA=OFF                                                 \
       -D BUILD_OPENCV_NONFREE=ON                                               \
       -D BUILD_OPENCV_PYTHON=ON                                                \
+      -D BUILD_EXAMPLES=ON                                                     \
       -D CMAKE_BUILD_TYPE=RELEASE                                              \
       -D CMAKE_INSTALL_PREFIX=$INSTALL_PATH                                    \
       -D CUDA_FAST_MATH=1                                                      \
       -D CUDA_TOOLKIT_ROOT_DIR=$CUDA_PATH                                      \
       -D ENABLE_FAST_MATH=1                                                    \
       -D ENABLE_PRECOMPILED_HEADERS=OFF                                        \
+      -D INSTALL_C_EXAMPLES=ON                                                 \
+      -D INSTALL_PYTHON_EXAMPLES=ON                                            \
       -D OPENCV_EXTRA_MODULES_PATH=$DOWNLOAD_PATH/opencv_contrib/modules       \
       -D OPENCV_TEST_DATA_PATH=$DOWNLOAD_PATH/opencv_extra/testdata            \
+      -D VTK_DIR=/usr/lib/cmake/vtk-6.2                                        \
       -D WITH_1394=OFF                                                         \
       -D WITH_CUBLAS=ON                                                        \
       -D WITH_CUDA=ON                                                          \
@@ -150,7 +154,7 @@ cmake \
       -D WITH_QT=ON                                                            \
       -D WITH_TBB=ON                                                           \
       -D WITH_V4L=ON                                                           \
-      -D WITH_VTK=OFF                                                          \
+      -D WITH_VTK=ON                                                           \
       -D WITH_XINE=ON                                                          \
 ..
 
@@ -160,7 +164,7 @@ make -j $(($(nproc)+1))
 
 # Installing
 msg "Installing OpenCV"
-sudo make install
+sudo make -j $(($(nproc)+1)) install
 sudo ldconfig
 
 # Finished
