@@ -2,8 +2,18 @@
 # Run: $ curl -fsSL http://bit.ly/OpenCV-Latest | [optirun] bash -s /path/to/download/folder
 RESET='\033[0m'
 COLOR='\033[1;32m'
+function maxmake {
+  make -j $(($(nproc)+1));
+  sudo make install -j $(($(nproc)+1))
+}
+
 function msg {
   echo -e "${COLOR}$(date): $1${RESET}"
+}
+
+function mcd {
+  mkdir "$1"
+  cd "$1"
 }
 
 if [ -z "$1" ]; then
@@ -86,7 +96,6 @@ sudo apt install -y                  \
 
 msg "Installing Linear Algebra and Parallelism libs."
 sudo apt install -y                  \
-  libeigen3-dev                      \
   libtbb-dev
 
 msg "Installing LAPACKE libs."
@@ -123,59 +132,44 @@ msg "All deps installed. Continuing with installation"
 # Downloading
 cd $DOWNLOAD_PATH
 
-if [[ -d "ceres-solver" && -x "ceres-solver" ]]; then
-  msg "Updating Ceres-Solver Repo."
-  cd ceres-solver
-  git pull
-  cd ..
-else
-  msg "Downloading Ceres Solver."
-  git clone https://ceres-solver.googlesource.com/ceres-solver
-fi
+REPOS="eigen-git-mirror,https://github.com/eigenteam/eigen-git-mirror
+  ceres-solver,https://ceres-solver.googlesource.com/ceres-solver
+  opencv,https://github.com/opencv/opencv.git
+  opencv_contrib,https://github.com/opencv/opencv_contrib.git
+  opencv_extra,https://github.com/opencv/opencv_extra.git"
 
-if [[ -d "opencv" && -x "opencv" ]]; then
-  msg "Updating OpenCV Repo."
-  cd opencv
-  git pull
-  cd ..
-else
-  msg "Downloading OpenCV"
-  git clone https://github.com/opencv/opencv.git
-fi
+for repo in $REPOS; do
+  IFS=","
+  set $repo
+  if [[ -d $1 && -x $1 ]]; then
+    msg "Updating $1 Repo."
+    cd $1
+    git pull
+    cd ..
+  else
+    msg "Downloading $1 Package"
+    git clone $2
+  fi
+done
 
-if [[ -d "opencv_contrib" && -x "opencv_contrib" ]]; then
-  msg "Updating OpenCV-Contrib Repo."
-  cd opencv_contrib
-  git pull
-  cd ..
-else
-  msg "Downloading OpenCV_Contrib Package"
-  git clone https://github.com/opencv/opencv_contrib.git
-fi
-
-if [[ -d "opencv_extra" && -x "opencv_extra" ]]; then
-  msg "Updating OpenCV-Extra Repo."
-  cd opencv_extra
-  git pull
-  cd ..
-else
-  msg "Downloading OpenCV_Extra Package"
-  git clone https://github.com/opencv/opencv_extra.git
-fi
+msg "Building Eigen Lib."
+mcd eigen-git-mirror/build
+cmake ..
+msg "Installing Eigen"
+maxmake
+cd $DOWNLOAD_PATH
 
 msg "Building Ceres Solver."
-mkdir ceres-solver/build
-cd ceres-solver/build
+mcd ceres-solver/build
 cmake \
   -D CMAKE_C_FLAGS="-fPIC"                                                     \
   -D CMAKE_CXX_FLAGS="-fPIC"                                                   \
   -D BUILD_EXAMPLES=OFF                                                        \
   -D BUILD_SHARED_LIBS=ON                                                      \
 ..
-make -j $(($(nproc)+1))
-#make -j $(($(nproc)+1)) test
 msg "Installing Ceres Solver."
-sudo make -j $(($(nproc)+1)) install
+maxmake
+make -j $(($(nproc)+1)) test
 cd $DOWNLOAD_PATH
 
 sudo rm -rf opencv/build
@@ -190,7 +184,7 @@ cmake \
       -D BUILD_OPENCV_JS=ON                                                    \
       -D BUILD_OPENCV_NONFREE=ON                                               \
       -D BUILD_OPENCV_PYTHON=ON                                                \
-      -D BUILD_EXAMPLES=ON                                                     \
+      -D BUILD_EXAMPLES=OFF                                                    \
       -D CMAKE_BUILD_TYPE=RELEASE                                              \
       -D CMAKE_INSTALL_PREFIX=$INSTALL_PATH                                    \
       -D CUDA_FAST_MATH=1                                                      \
@@ -223,12 +217,10 @@ cmake \
 ..
 
 # Making
-msg "Building OpenCV with $(($(nproc)+1)) threads"
-make -j $(($(nproc)+1))
+msg "Building OpenCV."
+maxmake
 
-# Installing
 msg "Installing OpenCV"
-sudo make -j $(($(nproc)+1)) install
 sudo ldconfig
 
 # Finished
