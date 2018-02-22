@@ -3,7 +3,8 @@
 RESET='\033[0m'
 COLOR='\033[1;32m'
 function maxmake {
-  make -j $(($(nproc)+1));
+  make -j $(($(nproc)+1)) VERBOSE=1
+  make -j $(($(nproc)+1)) test
   sudo make install -j $(($(nproc)+1))
 }
 
@@ -29,7 +30,7 @@ msg "OpenCV will be installed in $INSTALL_PATH"
 DOWNLOAD_PATH=$1
 msg "OpenCV will be downloaded in $DOWNLOAD_PATH"
 
-CUDA_PATH="/usr/local/cuda-9.1"
+CUDA_PATH="/usr/local/cuda"
 
 msg "Updating system before installing new packages."
 sudo apt -y update
@@ -141,7 +142,7 @@ REPOS="eigen-git-mirror,https://github.com/eigenteam/eigen-git-mirror
 for repo in $REPOS; do
   IFS=","
   set $repo
-  if [[ -d $1 && -x $1 ]]; then
+  if [[ -D$1 && -x $1 ]]; then
     msg "Updating $1 Repo."
     cd $1
     git pull
@@ -162,14 +163,13 @@ cd $DOWNLOAD_PATH
 msg "Building Ceres Solver."
 mcd ceres-solver/build
 cmake \
-  -D CMAKE_C_FLAGS="-fPIC"                                                     \
-  -D CMAKE_CXX_FLAGS="-fPIC"                                                   \
-  -D BUILD_EXAMPLES=OFF                                                        \
-  -D BUILD_SHARED_LIBS=ON                                                      \
+  -DCMAKE_C_FLAGS="-fPIC"                                                     \
+  -DCMAKE_CXX_FLAGS="-fPIC"                                                   \
+  -DBUILD_EXAMPLES=OFF                                                        \
+  -DBUILD_SHARED_LIBS=ON                                                      \
 ..
 msg "Installing Ceres Solver."
 maxmake
-make -j $(($(nproc)+1)) test
 cd $DOWNLOAD_PATH
 
 sudo rm -rf opencv/build
@@ -179,41 +179,38 @@ cd opencv/build
 # Configuring make
 msg "Configuring OpenCV Make"
 cmake \
-      -D BUILD_EXAMPLES=ON                                                     \
-      -D BUILD_OPENCV_JAVA=OFF                                                 \
-      -D BUILD_OPENCV_JS=ON                                                    \
-      -D BUILD_OPENCV_NONFREE=ON                                               \
-      -D BUILD_OPENCV_PYTHON=ON                                                \
-      -D BUILD_EXAMPLES=OFF                                                    \
-      -D CMAKE_BUILD_TYPE=RELEASE                                              \
-      -D CMAKE_INSTALL_PREFIX=$INSTALL_PATH                                    \
-      -D CUDA_FAST_MATH=1                                                      \
-      -D CUDA_TOOLKIT_ROOT_DIR=$CUDA_PATH                                      \
-      -D ENABLE_CCACHE=ON                                                      \
-      -D ENABLE_FAST_MATH=1                                                    \
-      -D ENABLE_PRECOMPILED_HEADERS=OFF                                        \
-      -D INSTALL_C_EXAMPLES=ON                                                 \
-      -D INSTALL_PYTHON_EXAMPLES=ON                                            \
-      -D INSTALL_TESTS=ON                                                      \
-      -D OPENCV_EXTRA_MODULES_PATH=$DOWNLOAD_PATH/opencv_contrib/modules       \
-      -D OPENCV_TEST_DATA_PATH=$DOWNLOAD_PATH/opencv_extra/testdata            \
-      -D VTK_DIR=/usr/lib/cmake/vtk-6.2                                        \
-      -D WITH_1394=OFF                                                         \
-      -D WITH_CUBLAS=ON                                                        \
-      -D WITH_CUDA=ON                                                          \
-      -D WITH_FFMPEG=ON                                                        \
-      -D WITH_GDAL=ON                                                          \
-      -D WITH_GSTREAMER=ON                                                     \
-      -D WITH_LIBV4L=ON                                                        \
-      -D WITH_NVCUVID=ON                                                       \
-      -D WITH_OPENCL=ON                                                        \
-      -D WITH_OPENGL=ON                                                        \
-      -D WITH_OPENMP=ON                                                        \
-      -D WITH_QT=ON                                                            \
-      -D WITH_TBB=ON                                                           \
-      -D WITH_V4L=ON                                                           \
-      -D WITH_VTK=ON                                                           \
-      -D WITH_XINE=ON                                                          \
+      -DBUILD_EXAMPLES=ON                                                     \
+      -DBUILD_OPENCV_JAVA=OFF                                                 \
+      -DBUILD_OPENCV_JS=ON                                                    \
+      -DBUILD_OPENCV_NONFREE=ON                                               \
+      -DBUILD_OPENCV_PYTHON=ON                                                \
+      -DCMAKE_BUILD_TYPE=RELEASE                                              \
+      -DCMAKE_INSTALL_PREFIX=$INSTALL_PATH                                    \
+      -DCUDA_FAST_MATH=ON                                                     \
+      -DCUDA_TOOLKIT_ROOT_DIR=$CUDA_PATH                                      \
+      -DENABLE_CCACHE=ON                                                      \
+      -DENABLE_FAST_MATH=ON                                                   \
+      -DENABLE_PRECOMPILED_HEADERS=OFF                                        \
+      -DINSTALL_C_EXAMPLES=ON                                                 \
+      -DINSTALL_PYTHON_EXAMPLES=ON                                            \
+      -DINSTALL_TESTS=ON                                                      \
+      -DOPENCV_EXTRA_MODULES_PATH=$DOWNLOAD_PATH/opencv_contrib/modules/      \
+      -DOPENCV_TEST_DATA_PATH=$DOWNLOAD_PATH/opencv_extra/testdata            \
+      -DWITH_CUBLAS=ON                                                        \
+      -DWITH_CUDA=ON                                                          \
+      -DWITH_FFMPEG=ON                                                        \
+      -DWITH_GDAL=ON                                                          \
+      -DWITH_GSTREAMER=ON                                                     \
+      -DWITH_LIBV4L=ON                                                        \
+      -DWITH_NVCUVID=ON                                                       \
+      -DWITH_OPENCL=ON                                                        \
+      -DWITH_OPENGL=ON                                                        \
+      -DWITH_OPENMP=ON                                                        \
+      -DWITH_QT=ON                                                            \
+      -DWITH_TBB=ON                                                           \
+      -DWITH_V4L=ON                                                           \
+      -DWITH_VTK=ON                                                           \
+      -DWITH_XINE=ON                                                          \
 ..
 
 # Making
