@@ -2,11 +2,6 @@
 # Run: $ curl -fsSL http://bit.ly/OpenCV-Latest | [optirun] bash -s /path/to/download/folder
 RESET='\033[0m'
 COLOR='\033[1;32m'
-function maxmake {
-  make -j $(($(nproc)+1)) VERBOSE=1
-  make -j $(($(nproc)+1)) test
-  sudo make install -j $(($(nproc)+1))
-}
 
 function msg {
   echo -e "${COLOR}$(date): $1${RESET}"
@@ -97,7 +92,13 @@ sudo apt install -y                  \
 
 msg "Installing Linear Algebra and Parallelism libs."
 sudo apt install -y                  \
+  libboost-all-dev                   \
+  libfftw3-dev                       \
+  libfftw3-mpi-dev                   \
+  libmpfr-dev                        \
+  libsuperlu-dev                     \
   libtbb-dev
+
 
 msg "Installing LAPACKE libs."
 sudo apt install -y                  \
@@ -153,11 +154,34 @@ for repo in $REPOS; do
   fi
 done
 
-msg "Building Eigen Lib."
+#msg "Checking Eigen Libs."
+#if [[ -D"eigen/build" && -x "eigen/build" ]]; then
+#  msg "Eigen was found"
+#else
+#  if [[ -D"eigen" && -x "eigen" ]]; then
+#    msg "Eigen was found but not built"
+#    cd eigen
+#  else
+#    mcd eigen
+#    wget http://bitbucket.org/eigen/eigen/get/3.3.4.tar.gz -O - | tar --strip-components=1 -xvz
+#  fi
+#  msg "Building Eigen"
+#  mcd build
+#  cmake ..
+#  make -j $(($(nproc)+1))
+#  make -j $(($(nproc)+1)) blas
+#  make -j $(($(nproc)+1)) check
+
+#  msg "Installing Eigen"
+#  sudo make -j $(($(nproc)+1)) install
+#  cd $DOWNLOAD_PATH
+#fi
+
+msg "Building Eigen"
 mcd eigen-git-mirror/build
 cmake ..
 msg "Installing Eigen"
-maxmake
+sudo make -j $(($(nproc)+1)) install
 cd $DOWNLOAD_PATH
 
 msg "Building Ceres Solver."
@@ -169,7 +193,9 @@ cmake \
   -DBUILD_SHARED_LIBS=ON                                                      \
 ..
 msg "Installing Ceres Solver."
-maxmake
+make -j $(($(nproc)+1))
+make -j $(($(nproc)+1)) test
+sudo make -j $(($(nproc)+1)) install
 cd $DOWNLOAD_PATH
 
 sudo rm -rf opencv/build
@@ -195,7 +221,8 @@ cmake \
       -DINSTALL_PYTHON_EXAMPLES=ON                                            \
       -DINSTALL_TESTS=ON                                                      \
       -DOPENCV_EXTRA_MODULES_PATH=$DOWNLOAD_PATH/opencv_contrib/modules/      \
-      -DOPENCV_TEST_DATA_PATH=$DOWNLOAD_PATH/opencv_extra/testdata            \
+      -DOPENCV_ENABLE_NONFREE=ON                                              \
+      -DOPENCV_TEST_DATA_PATH=$DOWNLOAD_PATH/opencv_extra/testdata/           \
       -DWITH_CUBLAS=ON                                                        \
       -DWITH_CUDA=ON                                                          \
       -DWITH_FFMPEG=ON                                                        \
@@ -215,9 +242,13 @@ cmake \
 
 # Making
 msg "Building OpenCV."
-maxmake
+make -j $(($(nproc)+1)) all
+make -j $(($(nproc)+1)) test
+
+exit 1
 
 msg "Installing OpenCV"
+sudo make -j $(($(nproc)+1)) install
 sudo ldconfig
 
 # Finished
