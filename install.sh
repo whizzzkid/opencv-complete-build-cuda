@@ -1,5 +1,6 @@
 #!/bin/bash
 # Run: $ curl -fsSL http://bit.ly/OpenCV-Latest | [optirun] bash -s /path/to/download/folder
+# libeigen3-dev: http://launchpadlibrarian.net/356350632/libeigen3-dev_3.3.4-4_all.deb
 RESET='\033[0m'
 COLOR='\033[1;32m'
 
@@ -134,8 +135,7 @@ msg "All deps installed. Continuing with installation"
 # Downloading
 cd $DOWNLOAD_PATH
 
-REPOS="eigen-git-mirror,https://github.com/eigenteam/eigen-git-mirror
-  ceres-solver,https://ceres-solver.googlesource.com/ceres-solver
+REPOS="ceres-solver,https://ceres-solver.googlesource.com/ceres-solver
   opencv,https://github.com/opencv/opencv.git
   opencv_contrib,https://github.com/opencv/opencv_contrib.git
   opencv_extra,https://github.com/opencv/opencv_extra.git"
@@ -153,36 +153,6 @@ for repo in $REPOS; do
     git clone $2
   fi
 done
-
-#msg "Checking Eigen Libs."
-#if [[ -D"eigen/build" && -x "eigen/build" ]]; then
-#  msg "Eigen was found"
-#else
-#  if [[ -D"eigen" && -x "eigen" ]]; then
-#    msg "Eigen was found but not built"
-#    cd eigen
-#  else
-#    mcd eigen
-#    wget http://bitbucket.org/eigen/eigen/get/3.3.4.tar.gz -O - | tar --strip-components=1 -xvz
-#  fi
-#  msg "Building Eigen"
-#  mcd build
-#  cmake ..
-#  make -j $(($(nproc)+1))
-#  make -j $(($(nproc)+1)) blas
-#  make -j $(($(nproc)+1)) check
-
-#  msg "Installing Eigen"
-#  sudo make -j $(($(nproc)+1)) install
-#  cd $DOWNLOAD_PATH
-#fi
-
-msg "Building Eigen"
-mcd eigen-git-mirror/build
-cmake ..
-msg "Installing Eigen"
-sudo make -j $(($(nproc)+1)) install
-cd $DOWNLOAD_PATH
 
 msg "Building Ceres Solver."
 mcd ceres-solver/build
@@ -244,8 +214,6 @@ cmake \
 msg "Building OpenCV."
 make -j $(($(nproc)+1)) all
 make -j $(($(nproc)+1)) test
-
-exit 1
 
 msg "Installing OpenCV"
 sudo make -j $(($(nproc)+1)) install
