@@ -1,6 +1,8 @@
 #!/bin/bash
 # Run: $ curl -fsSL http://bit.ly/OpenCV-Latest | [optirun] bash -s /path/to/download/folder
 # libeigen3-dev: http://launchpadlibrarian.net/356350632/libeigen3-dev_3.3.4-4_all.deb
+# sudo ln -s /usr/lib/nvidia-387/libnvcuvid.so /usr/lib/libnvcuvid.so
+# sudo ln -s /usr/lib/nvidia-387/libnvcuvid.so.1 /usr/lib/libnvcuvid.so.1
 RESET='\033[0m'
 COLOR='\033[1;32m'
 
@@ -29,6 +31,7 @@ msg "OpenCV will be downloaded in $DOWNLOAD_PATH"
 CUDA_PATH="/usr/local/cuda"
 
 msg "Updating system before installing new packages."
+sudo add-apt-repository -y ppa:jonathonf/ffmpeg-3
 sudo apt -y update
 sudo apt -y upgrade
 sudo apt -y dist-upgrade
@@ -43,12 +46,14 @@ sudo apt install -y                  \
 
 msg "Installing GUI components."
 sudo apt install -y                  \
+  libharfbuzz-dev                    \
   libvtk6-dev                        \
   python-vtk6                        \
   qt5-default
 
 msg "Installing media I/O componenets."
 sudo apt install -y                  \
+  libavresample-dev                  \
   libgdal-dev                        \
   libgphoto2-dev                     \
   libjasper-dev                      \
@@ -97,6 +102,7 @@ sudo apt install -y                  \
   libfftw3-dev                       \
   libfftw3-mpi-dev                   \
   libmpfr-dev                        \
+  libopenblas-dev                    \
   libsuperlu-dev                     \
   libtbb-dev
 
@@ -115,6 +121,7 @@ sudo apt install -y                  \
 
 msg "Installing Python."
 sudo apt install -y                  \
+  pylint                             \
   python-dev                         \
   python-numpy                       \
   python-tk                          \
@@ -164,7 +171,7 @@ cmake \
 ..
 msg "Installing Ceres Solver."
 make -j $(($(nproc)+1))
-make -j $(($(nproc)+1)) test
+#make -j $(($(nproc)+1)) test
 sudo make -j $(($(nproc)+1)) install
 cd $DOWNLOAD_PATH
 
@@ -182,6 +189,8 @@ cmake \
       -DBUILD_OPENCV_PYTHON=ON                                                \
       -DCMAKE_BUILD_TYPE=RELEASE                                              \
       -DCMAKE_INSTALL_PREFIX=$INSTALL_PATH                                    \
+      -DCMAKE_LIBRARY_PATH=$CUDA_PATH/lib64/stubs                             \
+      -DCUDA_CUDA_LIBRARY=$CUDA_PATH/lib64/stubs/libcuda.so                   \
       -DCUDA_FAST_MATH=ON                                                     \
       -DCUDA_TOOLKIT_ROOT_DIR=$CUDA_PATH                                      \
       -DENABLE_CCACHE=ON                                                      \
