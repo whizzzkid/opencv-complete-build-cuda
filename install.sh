@@ -37,7 +37,7 @@ msg "OpenCV will be downloaded in $DOWNLOAD_PATH"
 CUDA_PATH="/usr/local/cuda"
 
 msg "Updating system before installing new packages."
-#sudo add-apt-repository -y ppa:jonathonf/ffmpeg-3 || fail
+sudo add-apt-repository -y ppa:jonathonf/ffmpeg-3 || fail
 sudo apt -y update || fail
 sudo apt -y upgrade || fail
 sudo apt -y dist-upgrade || fail
@@ -239,7 +239,7 @@ cmake \
 # Making
 msg "Building OpenCV."
 make -j $(($(nproc)+1)) || fail
-#make -j $(($(nproc)+1)) test || fail
+make -j $(($(nproc)+1)) test || fail
 
 msg "Installing OpenCV"
 sudo make -j $(($(nproc)+1)) install || fail
